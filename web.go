@@ -4,7 +4,6 @@ package web
 
 import (
 	"bytes"
-	"code.google.com/p/go.net/websocket"
 	"crypto/hmac"
 	"crypto/sha1"
 	"crypto/tls"
@@ -20,6 +19,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"code.google.com/p/go.net/websocket"
 )
 
 // A Context object is created for every incoming HTTP request, and is
@@ -33,6 +34,7 @@ type Context struct {
 	http.ResponseWriter
 	flash          *Flash
 	SessionStorage ISessionStorage
+	newSessionID   string
 }
 
 // WriteString writes string data into the response object.

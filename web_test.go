@@ -578,3 +578,13 @@ func BenchmarkProcessPost(b *testing.B) {
 		s.Process(&c, req)
 	}
 }
+
+func TestMemcacheStore(t *testing.T) {
+	ms := NewMemcacheStore("127.0.0.1:11211")
+	ms.SetSession("123456", "hello", []byte("world"))
+	v := ms.GetSession("123456", "hello")
+	if string(v) != "world" {
+		t.Fatal("value get != value set")
+	}
+	ms.ClearSession("123456", "hello")
+}

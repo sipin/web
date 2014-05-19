@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/sipin/web/randbo"
 )
 
@@ -36,6 +37,7 @@ func (ctx *Context) AbandonSession() {
 
 func (ctx *Context) SetNewSessionID() (sessionID string) {
 	sessionID = newSessionID()
+	ctx.newSessionID = sessionID
 	ctx.SetCookie(NewSessionCookie(SessionKey, sessionID))
 	return
 }
@@ -43,11 +45,15 @@ func (ctx *Context) SetNewSessionID() (sessionID string) {
 // SetCookie adds a cookie header to the response.
 func (ctx *Context) GetSessionID() (sessionID string) {
 	cookie, _ := ctx.Request.Cookie(SessionKey)
-
-	if cookie == nil || len(cookie.Value) != sessionIDLen {
-		return ctx.SetNewSessionID()
+	if cookie != nil && len(cookie.Value) == sessionIDLen {
+		return cookie.Value
 	}
-	return cookie.Value
+
+	if ctx.newSessionID != "" {
+		return ctx.newSessionID
+	}
+
+	return ctx.SetNewSessionID()
 }
 
 // Simple session storage using memory, handy for development
@@ -71,4 +77,42 @@ func (ms *memoryStore) GetSession(sessionID string, key string) []byte {
 
 func (ms *memoryStore) ClearSession(sessionID string, key string) {
 	delete(ms.data, sessionID+key)
+}
+
+// Memcache session storage
+type memcacheStore struct {
+	mc *memcache.Client
+}
+
+func NewMemcacheStore(servers ...string) *memcacheStore {
+	ms := &memcacheStore{}
+	ms.mc = memcache.New(servers...)
+	return ms
+}
+
+func (ms *memcacheStore) SetSession(sessionID string, key string, data []byte) {
+	item := &memcache.Item{Key: sessionID + key, Value: data}
+	err := ms.mc.Set(item)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (ms *memcacheStore) GetSession(sessionID string, key string) []byte {
+	item, err := ms.mc.Get(sessionID + key)
+	if err == memcache.ErrCacheMiss {
+		return nil
+	}
+	if err != nil {
+		panic(err)
+	}
+	return item.Value
+}
+
+func (ms *memcacheStore) ClearSession(sessionID string, key string) {
+	err := ms.mc.Delete(sessionID + key)
+	if err == memcache.ErrCacheMiss {
+		return
+	}
+	panic(err)
 }

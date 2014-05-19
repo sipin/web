@@ -2,7 +2,6 @@ package web
 
 import (
 	"bytes"
-	"code.google.com/p/go.net/websocket"
 	"crypto/tls"
 	"fmt"
 	"log"
@@ -17,6 +16,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"code.google.com/p/go.net/websocket"
 )
 
 // ServerConfig is configuration for server objects.
@@ -255,7 +256,7 @@ func requiresIContext(handlerType reflect.Type) (IContext, bool) {
 	if ctx, ok := arg.(IContext); ok {
 		return ctx, true
 	} else {
-		print("IContext test failed\n")
+		// print("IContext test failed\n")
 	}
 
 	return nil, false
