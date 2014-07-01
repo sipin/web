@@ -30,6 +30,7 @@ import (
 type Context struct {
 	Request *http.Request
 	Params  map[string]string
+	Data    map[string][]string
 	Server  *Server
 	http.ResponseWriter
 	flash          *Flash
@@ -120,6 +121,52 @@ func (ctx *Context) SetHeader(hdr string, val string, unique bool) {
 func (ctx *Context) SetCookie(cookie *http.Cookie) {
 	ctx.Request.AddCookie(cookie)
 	ctx.SetHeader("Set-Cookie", cookie.String(), false)
+}
+
+func (ctx *Context) AddDataUnique(dataType string, values ...string) {
+	var data []string
+	var ok bool
+	if ctx.Data == nil {
+		ctx.Data = make(map[string][]string)
+	}
+
+	if data, ok = ctx.Data[dataType]; !ok {
+		data = []string{}
+	}
+
+	for _, val := range values {
+		isNewVal := true
+		for _, ele := range data {
+			if ele == val {
+				isNewVal = false
+			}
+		}
+
+		if isNewVal {
+			data = append(data, val)
+		}
+	}
+	ctx.Data[dataType] = data
+}
+
+func (ctx *Context) GetData(dataType string) (values []string) {
+	return ctx.Data[dataType]
+}
+
+func (ctx *Context) AddJS(val ...string) {
+	ctx.AddDataUnique("js", val...)
+}
+
+func (ctx *Context) GetJS() (values []string) {
+	return ctx.GetData("js")
+}
+
+func (ctx *Context) AddCSS(val ...string) {
+	ctx.AddDataUnique("css", val...)
+}
+
+func (ctx *Context) GetCSS() (values []string) {
+	return ctx.GetData("css")
 }
 
 func getCookieSig(key string, val []byte, timestamp string) string {
