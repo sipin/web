@@ -22,6 +22,7 @@ import (
 
 // ServerConfig is configuration for server objects.
 type ServerConfig struct {
+	StaticHost   string
 	StaticDir    string
 	Addr         string
 	Port         int

@@ -5,6 +5,7 @@ package web
 import (
 	"bytes"
 	"crypto/hmac"
+	"crypto/md5"
 	"crypto/sha1"
 	"crypto/tls"
 	"encoding/base64"
@@ -167,6 +168,48 @@ func (ctx *Context) AddCSS(val ...string) {
 
 func (ctx *Context) GetCSS() (values []string) {
 	return ctx.GetData("css")
+}
+
+func (ctx *Context) getStaticFileHash(name string) string {
+	if ctx.Server.Config.StaticDir != "" {
+		staticFile := path.Join(ctx.Server.Config.StaticDir, name)
+		if fileExists(staticFile) {
+			data, err := ioutil.ReadFile(staticFile)
+			if err != nil {
+				return ""
+			}
+			return fmt.Sprintf("%x", md5.Sum(data))
+		}
+	} else {
+		for _, staticDir := range defaultStaticDirs {
+			staticFile := path.Join(staticDir, name)
+			if fileExists(staticFile) {
+				data, err := ioutil.ReadFile(staticFile)
+				if err != nil {
+					return ""
+				}
+				return fmt.Sprintf("%x", md5.Sum(data))
+			}
+		}
+	}
+	return ""
+}
+
+func (ctx *Context) GetStaticUrl(url string) string {
+	if url[0] != '/' {
+		return url
+	}
+	if ctx.Server.Config.StaticHost == "" {
+		return url
+	}
+
+	hash := ctx.getStaticFileHash(url)
+
+	if hash == "" {
+		return ctx.Server.Config.StaticHost + url
+	}
+
+	return ctx.Server.Config.StaticHost + url + "?hash=" + hash
 }
 
 func getCookieSig(key string, val []byte, timestamp string) string {
