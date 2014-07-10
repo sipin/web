@@ -24,6 +24,7 @@ import (
 type ServerConfig struct {
 	StaticHost            string
 	StaticHostExcludeType string
+	StaticHostExcludeFile string
 	StaticDir             string
 	Addr                  string
 	Port                  int

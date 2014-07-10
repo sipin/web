@@ -208,11 +208,28 @@ func (ctx *Context) IsExcludeType(url string) bool {
 	return false
 }
 
+func (ctx *Context) IsExcludeFile(url string) bool {
+	files := strings.Split(ctx.Server.Config.StaticHostExcludeFile, ",")
+	for _, f := range files {
+		if f == "" {
+			continue
+		}
+		if url == f {
+			return true
+		}
+	}
+	return false
+}
+
 func (ctx *Context) GetStaticUrl(url string) string {
 	if url[0] != '/' {
 		return url
 	}
 	if ctx.Server.Config.StaticHost == "" {
+		return url
+	}
+
+	if ctx.IsExcludeFile(url) {
 		return url
 	}
 
