@@ -195,13 +195,54 @@ func (ctx *Context) getStaticFileHash(name string) string {
 	return ""
 }
 
+func isIE(version, user_agent string) bool {
+	key := "MSIE " + version
+	return strings.Contains(user_agent, key)
+}
+
+var browserMatchMap = map[string]func(user_agent string) bool{
+	"ie8": func(user_agent string) bool { return isIE("8.0", user_agent) },
+	"ie9": func(user_agent string) bool { return isIE("9.0", user_agent) },
+}
+
+func browserMatch(t, user_agent string) bool {
+	if user_agent == "" {
+		return false
+	}
+	if t == "" {
+		return true
+	}
+	handler, ok := browserMatchMap[t]
+	if !ok {
+		return false
+	}
+	return handler(user_agent)
+}
+
+func splitExclude(s string) (t, v string) {
+	if !strings.Contains(s, ":") {
+		return "", s
+	}
+	ss := strings.Split(s, ":")
+	return ss[0], ss[1]
+}
+
+func (ctx *Context) getUserAgent() string {
+	agents := ctx.Request.Header["User-Agent"]
+	if len(agents) > 0 {
+		return agents[0]
+	}
+	return ""
+}
+
 func (ctx *Context) IsExcludeType(url string) bool {
 	types := strings.Split(ctx.Server.Config.StaticHostExcludeType, ",")
 	for _, t := range types {
 		if t == "" {
 			continue
 		}
-		if strings.HasSuffix(url, t) {
+		t1, v := splitExclude(t)
+		if browserMatch(t1, ctx.getUserAgent()) && strings.HasSuffix(url, v) {
 			return true
 		}
 	}
@@ -214,7 +255,8 @@ func (ctx *Context) IsExcludeFile(url string) bool {
 		if f == "" {
 			continue
 		}
-		if url == f {
+		t1, v := splitExclude(f)
+		if browserMatch(t1, ctx.getUserAgent()) && url == v {
 			return true
 		}
 	}
