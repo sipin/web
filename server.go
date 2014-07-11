@@ -22,14 +22,16 @@ import (
 
 // ServerConfig is configuration for server objects.
 type ServerConfig struct {
-	StaticHost   string
-	StaticDir    string
-	Addr         string
-	Port         int
-	CookieSecret string
-	XSRFSecret   string
-	RecoverPanic bool
-	Profiler     bool
+	StaticHost            string
+	StaticHostExcludeType string
+	StaticHostExcludeFile string
+	StaticDir             string
+	Addr                  string
+	Port                  int
+	CookieSecret          string
+	XSRFSecret            string
+	RecoverPanic          bool
+	Profiler              bool
 }
 
 // Server represents a web.go server.
