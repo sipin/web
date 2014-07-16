@@ -211,14 +211,17 @@ func (s *Server) safelyCall(function reflect.Value, args []reflect.Value) (resp 
 			} else {
 				e = err
 				resp = nil
-				s.Logger.Println("Handler crashed with error", err)
+				var errors []string
+
 				for i := 1; ; i += 1 {
 					_, file, line, ok := runtime.Caller(i)
 					if !ok {
 						break
 					}
-					s.Logger.Println(file, line)
+					errors = append(errors, fmt.Sprintf("\t%s:%d", file, line))
 				}
+
+				s.Logger.Println("Handler crashed with error: ", err, "\n", strings.Join(errors, "\n"))
 			}
 		}
 	}()
