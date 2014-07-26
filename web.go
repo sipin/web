@@ -285,6 +285,9 @@ func (ctx *Context) GetStaticUrl(url string) string {
 		return ctx.Server.Config.StaticHost + url
 	}
 
+	if ctx.Server.Config.StaticHost == "/" {
+		return url + "?hash=" + hash
+	}
 	return ctx.Server.Config.StaticHost + url + "?hash=" + hash
 }
 
