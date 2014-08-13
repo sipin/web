@@ -460,6 +460,10 @@ func SetXSRFOption(getUid func(*Context) string) {
 	mainServer.enableXSRF = true
 }
 
+func SetErrorHandler(f func(errorMsg string)) {
+	mainServer.ErrorHandler = f
+}
+
 // Config is the configuration of the main server.
 var Config = &ServerConfig{
 	RecoverPanic: true,

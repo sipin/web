@@ -43,8 +43,9 @@ type Server struct {
 	SessionStorage ISessionStorage
 	XSRFGetUid     func(*Context) string
 	//save the listener so it can be closed
-	l          net.Listener
-	enableXSRF bool
+	l            net.Listener
+	enableXSRF   bool
+	ErrorHandler func(errorMsg string)
 }
 
 func NewServer() *Server {
@@ -221,7 +222,12 @@ func (s *Server) safelyCall(function reflect.Value, args []reflect.Value) (resp 
 					errors = append(errors, fmt.Sprintf("\t%s:%d", file, line))
 				}
 
-				s.Logger.Println("Handler crashed with error: ", err, "\n", strings.Join(errors, "\n"))
+				errorMsg := strings.Join(errors, "\n")
+
+				s.Logger.Println("Handler crashed with error: ", err, "\n", errorMsg)
+				if s.ErrorHandler != nil {
+					s.ErrorHandler(errorMsg)
+				}
 			}
 		}
 	}()
