@@ -203,7 +203,7 @@ func (s *Server) Close() {
 }
 
 // safelyCall invokes `function` in recover block
-func (s *Server) safelyCall(function reflect.Value, args []reflect.Value) (resp []reflect.Value, e interface{}) {
+func (s *Server) safelyCall(req *http.Request, function reflect.Value, args []reflect.Value) (resp []reflect.Value, e interface{}) {
 	defer func() {
 		if err := recover(); err != nil {
 			if !s.Config.RecoverPanic {
@@ -222,7 +222,7 @@ func (s *Server) safelyCall(function reflect.Value, args []reflect.Value) (resp 
 					errors = append(errors, fmt.Sprintf("\t%s:%d", file, line))
 				}
 
-				errorMsg := strings.Join(errors, "\n")
+				errorMsg := req.Method + " " + req.RequestURI + "\n\n" + strings.Join(errors, "\n")
 
 				s.Logger.Println("Handler crashed with error: ", err, "\n", errorMsg)
 				if s.ErrorHandler != nil {
@@ -424,7 +424,7 @@ func (s *Server) routeHandler(req *http.Request, w http.ResponseWriter) (unused 
 			args = append(args, reflect.ValueOf(arg))
 		}
 
-		ret, err := s.safelyCall(route.handler, args)
+		ret, err := s.safelyCall(req, route.handler, args)
 		if err != nil {
 			//there was an error or panic while calling the handler
 			ctx.Abort(500, "Server Error")
