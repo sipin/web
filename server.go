@@ -43,9 +43,10 @@ type Server struct {
 	SessionStorage ISessionStorage
 	XSRFGetUid     func(*Context) string
 	//save the listener so it can be closed
-	l            net.Listener
-	enableXSRF   bool
-	ErrorHandler func(errorMsg string)
+	l                net.Listener
+	enableXSRF       bool
+	ErrorHandler     func(errorMsg string)
+	ErrorPageHandler func(*Context, int) string
 }
 
 func NewServer() *Server {
@@ -226,6 +227,7 @@ func (s *Server) safelyCall(req *http.Request, function reflect.Value, args []re
 
 				s.Logger.Println("Handler crashed with error: ", err, "\n", errorMsg)
 				if s.ErrorHandler != nil {
+					errorMsg = fmt.Sprintf("Handler crashed with error: %v\n", err) + errorMsg
 					s.ErrorHandler(errorMsg)
 				}
 			}
@@ -427,7 +429,11 @@ func (s *Server) routeHandler(req *http.Request, w http.ResponseWriter) (unused 
 		ret, err := s.safelyCall(req, route.handler, args)
 		if err != nil {
 			//there was an error or panic while calling the handler
-			ctx.Abort(500, "Server Error")
+			es := "Server Error"
+			if s.ErrorPageHandler != nil {
+				es = s.ErrorPageHandler(&ctx, 500)
+			}
+			ctx.Abort(500, es)
 		}
 		if len(ret) == 0 {
 			return
@@ -458,7 +464,11 @@ func (s *Server) routeHandler(req *http.Request, w http.ResponseWriter) (unused 
 			return
 		}
 	}
-	ctx.Abort(404, "Page not found")
+	es := "Page not found"
+	if s.ErrorPageHandler != nil {
+		es = s.ErrorPageHandler(&ctx, 404)
+	}
+	ctx.Abort(404, es)
 	return
 }
 
