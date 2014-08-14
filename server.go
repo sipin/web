@@ -46,7 +46,7 @@ type Server struct {
 	l                net.Listener
 	enableXSRF       bool
 	ErrorHandler     func(errorMsg string)
-	ErrorPageHandler func(*Context, int) string
+	ErrorPageHandler func(*Context, int, interface{}) string
 }
 
 func NewServer() *Server {
@@ -204,7 +204,7 @@ func (s *Server) Close() {
 }
 
 // safelyCall invokes `function` in recover block
-func (s *Server) safelyCall(req *http.Request, function reflect.Value, args []reflect.Value) (resp []reflect.Value, e interface{}) {
+func (s *Server) safelyCall(req *http.Request, function reflect.Value, args []reflect.Value) (resp []reflect.Value, e interface{}, stackDump string) {
 	defer func() {
 		if err := recover(); err != nil {
 			if !s.Config.RecoverPanic {
@@ -224,6 +224,7 @@ func (s *Server) safelyCall(req *http.Request, function reflect.Value, args []re
 				}
 
 				errorMsg := req.Method + " " + req.RequestURI + "\n\n" + strings.Join(errors, "\n")
+				stackDump = errorMsg
 
 				s.Logger.Println("Handler crashed with error: ", err, "\n", errorMsg)
 				if s.ErrorHandler != nil {
@@ -233,7 +234,7 @@ func (s *Server) safelyCall(req *http.Request, function reflect.Value, args []re
 			}
 		}
 	}()
-	return function.Call(args), nil
+	return function.Call(args), nil, ""
 }
 
 // requiresContext determines whether 'handlerType' contains
@@ -426,12 +427,13 @@ func (s *Server) routeHandler(req *http.Request, w http.ResponseWriter) (unused 
 			args = append(args, reflect.ValueOf(arg))
 		}
 
-		ret, err := s.safelyCall(req, route.handler, args)
+		ret, err, dump := s.safelyCall(req, route.handler, args)
 		if err != nil {
 			//there was an error or panic while calling the handler
 			es := "Server Error"
 			if s.ErrorPageHandler != nil {
-				es = s.ErrorPageHandler(&ctx, 500)
+				args := map[string]interface{}{"error": err, "dump": dump}
+				es = s.ErrorPageHandler(&ctx, 500, args)
 			}
 			ctx.Abort(500, es)
 		}
@@ -466,7 +468,7 @@ func (s *Server) routeHandler(req *http.Request, w http.ResponseWriter) (unused 
 	}
 	es := "Page not found"
 	if s.ErrorPageHandler != nil {
-		es = s.ErrorPageHandler(&ctx, 404)
+		es = s.ErrorPageHandler(&ctx, 404, nil)
 	}
 	ctx.Abort(404, es)
 	return

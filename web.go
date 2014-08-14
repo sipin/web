@@ -464,7 +464,7 @@ func SetErrorHandler(f func(errorMsg string)) {
 	mainServer.ErrorHandler = f
 }
 
-func SetErrorPageHandler(f func(*Context, int) string) {
+func SetErrorPageHandler(f func(*Context, int, interface{}) string) {
 	mainServer.ErrorPageHandler = f
 }
 
