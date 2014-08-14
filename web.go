@@ -464,6 +464,10 @@ func SetErrorHandler(f func(errorMsg string)) {
 	mainServer.ErrorHandler = f
 }
 
+func SetErrorPageHandler(f func(*Context, int) string) {
+	mainServer.ErrorPageHandler = f
+}
+
 // Config is the configuration of the main server.
 var Config = &ServerConfig{
 	RecoverPanic: true,
