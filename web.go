@@ -29,10 +29,11 @@ import (
 // about the request, including the http.Request object, the GET and POST params,
 // and acts as a Writer for the response.
 type Context struct {
-	Request *http.Request
-	Params  map[string]string
-	Data    map[string][]string
-	Server  *Server
+	Request     *http.Request
+	Params      map[string]string
+	Data        map[string][]string
+	DynamicData map[string]interface{}
+	Server      *Server
 	http.ResponseWriter
 	flash          *Flash
 	SessionStorage ISessionStorage
@@ -122,6 +123,22 @@ func (ctx *Context) SetHeader(hdr string, val string, unique bool) {
 func (ctx *Context) SetCookie(cookie *http.Cookie) {
 	ctx.Request.AddCookie(cookie)
 	ctx.SetHeader("Set-Cookie", cookie.String(), false)
+}
+
+func (ctx *Context) AddDynamicData(key string, value interface{}) {
+	if ctx.DynamicData == nil {
+		ctx.DynamicData = make(map[string]interface{})
+	}
+
+	ctx.DynamicData[key] = value
+}
+
+func (ctx *Context) GetDynamicData(key string) interface{} {
+	if ctx.DynamicData == nil {
+		return nil
+	}
+
+	return ctx.DynamicData[key]
 }
 
 func (ctx *Context) AddDataUnique(dataType string, values ...string) {
