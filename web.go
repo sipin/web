@@ -187,6 +187,10 @@ func (ctx *Context) GetCSS() (values []string) {
 	return ctx.GetData("css")
 }
 
+func (ctx *Context) GetDefaultStaticDirs() []string {
+	return defaultStaticDirs
+}
+
 func (ctx *Context) getStaticFileHash(name string) string {
 	if ctx.Server.Config.StaticDir != "" {
 		staticFile := path.Join(ctx.Server.Config.StaticDir, name)
