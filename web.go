@@ -13,6 +13,7 @@ import (
 	"io/ioutil"
 	"log"
 	"mime"
+	"net"
 	"net/http"
 	"os"
 	"path"
@@ -189,6 +190,11 @@ func (ctx *Context) GetCSS() (values []string) {
 
 func (ctx *Context) GetDefaultStaticDirs() []string {
 	return defaultStaticDirs
+}
+
+func (ctx *Context) GetIP() (ip string) {
+	host, _, _ := net.SplitHostPort(ctx.Request.RemoteAddr)
+	return host
 }
 
 func (ctx *Context) getStaticFileHash(name string) string {
