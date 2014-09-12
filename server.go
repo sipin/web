@@ -401,6 +401,7 @@ func (s *Server) routeHandler(req *http.Request, w http.ResponseWriter) (unused 
 		if s.enableXSRF {
 			getXSRFToken(s, &ctx)
 			if req.Method == "POST" && !XSRFValidate(&ctx) {
+				ctx.ResponseWriter.Write([]byte("Invalid XSRF"))
 				ctx.Forbidden()
 				return
 			}
