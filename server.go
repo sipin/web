@@ -479,3 +479,7 @@ func (s *Server) routeHandler(req *http.Request, w http.ResponseWriter) (unused 
 func (s *Server) SetLogger(logger *log.Logger) {
 	s.Logger = logger
 }
+func (s *Server) SetXSRFOption(getUid func(*Context) string) {
+	s.XSRFGetUid = getUid
+	s.enableXSRF = true
+}

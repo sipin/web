@@ -483,8 +483,7 @@ func SetSessionStorage(ss ISessionStorage) {
 }
 
 func SetXSRFOption(getUid func(*Context) string) {
-	mainServer.XSRFGetUid = getUid
-	mainServer.enableXSRF = true
+	mainServer.SetXSRFOption(getUid)
 }
 
 func SetErrorHandler(f func(errorMsg string)) {
