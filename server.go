@@ -479,7 +479,20 @@ func (s *Server) routeHandler(req *http.Request, w http.ResponseWriter) (unused 
 func (s *Server) SetLogger(logger *log.Logger) {
 	s.Logger = logger
 }
+
 func (s *Server) SetXSRFOption(getUid func(*Context) string) {
 	s.XSRFGetUid = getUid
 	s.enableXSRF = true
+}
+
+func (s *Server) SetSessionStorage(ss ISessionStorage) {
+	s.SessionStorage = ss
+}
+
+func (s *Server) SetErrorHandler(f func(errorMsg string)) {
+	s.ErrorHandler = f
+}
+
+func (s *Server) SetErrorPageHandler(f func(*Context, int, interface{}) string) {
+	s.ErrorPageHandler = f
 }

@@ -479,7 +479,7 @@ func SetLogger(logger *log.Logger) {
 
 // SetLogger sets the logger for the main server.
 func SetSessionStorage(ss ISessionStorage) {
-	mainServer.SessionStorage = ss
+	mainServer.SetSessionStorage(ss)
 }
 
 func SetXSRFOption(getUid func(*Context) string) {
@@ -487,11 +487,11 @@ func SetXSRFOption(getUid func(*Context) string) {
 }
 
 func SetErrorHandler(f func(errorMsg string)) {
-	mainServer.ErrorHandler = f
+	mainServer.SetErrorHandler(f)
 }
 
 func SetErrorPageHandler(f func(*Context, int, interface{}) string) {
-	mainServer.ErrorPageHandler = f
+	mainServer.SetErrorPageHandler(f)
 }
 
 // Config is the configuration of the main server.
