@@ -51,7 +51,7 @@ type Server struct {
 
 func NewServer() *Server {
 	return &Server{
-		Config:         Config,
+		Config:         &ServerConfig{},
 		Logger:         log.New(os.Stdout, "", log.Ldate|log.Ltime),
 		Env:            map[string]interface{}{},
 		SessionStorage: MemoryStore,
